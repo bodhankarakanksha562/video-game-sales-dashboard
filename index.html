@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css"/>
+        <title>Video Game Sales Data</title>
+    </head>
+    <body>
+o Games by Global Sales</h1>
+            <input type="text" id="search" class="searchbar" placeholder="Search games" onkeyup="filterTable()">
+            <table border="1" id="gamesTable">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Platform</th>
+                        <th>Year</th>
+                        <th>Genre</th>
+                        <th>Publisher</th>
+                        <th>NA Sales</th>
+                        <th>EU Sales</th>
+                        <th>JP Sales</th>
+                        <th>Other Sales</th>
+                        <th>Global Sales</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Wii Sports</td>
+                        <td>Wii</td>
+                        <td>2006</td>
+                        <td>Sports</td>
+                        <td>Nintendo</td>
+                        <td>41.49</td>
+                        <td>29.02</td>
+                        <td>3.77</td>
+                        <td>8.46</td>
+                        <td>82.74</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Super Mario Bros.</td>
+                        <td>NES</td>
+                        <td>1985</td>
+                        <td>Platform</td>
+                        <td>Nintendo</td>
+                        <td>29.08</td>
+                        <td>3.58</td>
+                        <td>6.81</td>
+                        <td>0.77</td>
+                        <td>40.24</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Mario Kart Wii</td>
+                        <td>Wii</td>
+                        <td>2008</td>
+                        <td>Racing</td>
+                        <td>Nintendo</td>
+                        <td>15.85</td>
+                        <td>12.88</td>
+                        <td>3.79</td>
+                        <td>3.31</td>
+                        <td>35.82</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Wii Sports Resort</td>
+                        <td>Wii</td>
+                        <td>2009</td>
+                        <td>Sports</td>
+                        <td>Nintendo</td>
+                        <td>15.75</td>
+                        <td>11.01</td>
+                        <td>3.28</td>
+                        <td>2.96</td>
+                        <td>33.00</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Pokemon Red/Pokemon Blue</td>
+                        <td>GB</td>
+                        <td>1996</td>
+                        <td>Role-Playing</td>
+                        <td>Nintendo</td>
+                        <td>11.27</td>
+                        <td>8.89</td>
+                        <td>10.22</td>
+                        <td>1.00</td>
+                        <td>31.37</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <script>
+            function filterTable() {
+                const input = document.getElementById('search');
+                const filter = input.value.toLowerCase();
+                const table = document.getElementById('gamesTable');
+                const rows = table.getElementsByTagName('tr');
+
+                for (let i = 1; i < rows.length; i++) {
+                    const cells = rows[i].getElementsByTagName('td');
+                    const name = cells[1].textContent.toLowerCase();
+                    if (name.includes(filter)) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>

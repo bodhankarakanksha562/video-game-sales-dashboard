@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Video Game Sales - Unified Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            padding: 20px;
+            min-height: calc(100vh - 120px);
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .service-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .service-header .icon {
+            font-size: 1.5em;
+        }
+
+        .service-content {
+            height: 400px;
+            position: relative;
+        }
+
+        .service-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #f8f9fa;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .status-online {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-offline {
+            background: #f44336;
+            color: white;
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+
+        .refresh-btn:hover {
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .fullscreen-btn {
+            background: linear-gradient(45deg, #2ed573, #1e90ff);
+        }
+
+        .fullscreen-btn:hover {
+            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.4);
+        }
+
+        .api-docs-btn {
+            background: linear-gradient(45deg, #a55eea, #764ba2);
+        }
+
+        .api-docs-btn:hover {
+            box-shadow: 0 5px 15px rgba(165, 94, 234, 0.4);
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
+            }
+
+            .controls {
+                flex-wrap: wrap;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎮 Video Game Sales - Unified Dashboard</h1>
+        <p>Streamlit Dashboard • FastAPI Backend • JavaScript Frontend - All in One View</p>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <button class="control-btn" onclick="openInNewTab('http://localhost:8501')">
+                📊 Open Dashboard (Full)
+            </button>
+            <button class="control-btn api-docs-btn" onclick="openInNewTab('http://localhost:8000/docs')">
+                📚 API Documentation
+            </button>
+            <button class="control-btn fullscreen-btn" onclick="toggleFullscreen()">
+                🔍 Toggle Fullscreen
+            </button>
+            <button class="control-btn refresh-btn" onclick="refreshAll()">
+                🔄 Refresh All
+            </button>
+        </div>
+
+        <!-- Streamlit Dashboard -->
+        <div class="service-card">
+            <div class="service-header">
+                <span class="icon">📊</span>
+                Streamlit Dashboard
+                <div class="status-indicator status-online" id="dashboard-status">● Online</div>
+            </div>
+            <div class="service-content">
+                <div class="loading" id="dashboard-loading">
+                    <div class="spinner"></div>
+                    <div>Loading Dashboard...</div>
+                </div>
+                <iframe
+                    id="dashboard-iframe"
+                    src="http://localhost:8501"
+                    onload="hideLoading('dashboard-loading')"
+                    onerror="showError('dashboard-status', 'dashboard-iframe')">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- FastAPI Backend -->
+        <div class="service-card">
+            <div class="service-header">
+                <span class="icon">⚡</span>
+                FastAPI Backend
+                <div class="status-indicator status-online" id="api-status">● Online</div>
+            </div>
+            <div class="service-content">
+                <div class="loading" id="api-loading">
+                    <div class="spinner"></div>
+                    <div>Loading API...</div>
+                </div>
+                <iframe
+                    id="api-iframe"
+                    src="http://localhost:8000/docs"
+                    onload="hideLoading('api-loading')"
+                    onerror="showError('api-status', 'api-iframe')">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- JavaScript Frontend -->
+        <div class="service-card">
+            <div class="service-header">
+                <span class="icon">🌐</span>
+                JavaScript Frontend
+                <div class="status-indicator status-online" id="frontend-status">● Online</div>
+            </div>
+            <div class="service-content">
+                <div class="loading" id="frontend-loading">
+                    <div class="spinner"></div>
+                    <div>Loading Frontend...</div>
+                </div>
+                <iframe
+                    id="frontend-iframe"
+                    src="http://localhost:8000"
+                    onload="hideLoading('frontend-loading')"
+                    onerror="showError('frontend-status', 'frontend-iframe')">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- API Health Check -->
+        <div class="service-card">
+            <div class="service-header">
+                <span class="icon">💚</span>
+                System Health
+                <div class="status-indicator status-online" id="health-status">● Online</div>
+            </div>
+            <div class="service-content">
+                <div class="loading" id="health-loading">
+                    <div class="spinner"></div>
+                    <div>Checking Health...</div>
+                </div>
+                <iframe
+                    id="health-iframe"
+                    src="about:blank"
+                    onload="loadHealthCheck()"
+                    style="background: #f8f9fa;">
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Built with ❤️ using Streamlit, FastAPI, and JavaScript •
+           <a href="https://github.com" target="_blank">View Source</a> •
+           <a href="README.md" target="_blank">Documentation</a>
+        </p>
+    </div>
+
+    <script>
+        // Service status tracking
+        const services = {
+            dashboard: { url: 'http://localhost:8501', status: 'online' },
+            api: { url: 'http://localhost:8000', status: 'online' },
+            frontend: { url: 'http://localhost:8000', status: 'online' }
+        };
+
+        // Hide loading spinner when iframe loads
+        function hideLoading(loadingId) {
+            const loading = document.getElementById(loadingId);
+            if (loading) {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Show error when iframe fails to load
+        function showError(statusId, iframeId) {
+            const status = document.getElementById(statusId);
+            const iframe = document.getElementById(iframeId);
+
+            if (status) {
+                status.textContent = '● Offline';
+                status.className = 'status-indicator status-offline';
+            }
+
+            if (iframe) {
+                iframe.style.display = 'none';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'loading';
+                errorDiv.innerHTML = `
+                    <div style="color: #f44336; font-size: 1.2em;">❌</div>
+                    <div>Service Unavailable</div>
+                    <div style="font-size: 0.9em; margin-top: 10px;">
+                        Make sure the service is running on the correct port
+                    </div>
+                `;
+                iframe.parentNode.appendChild(errorDiv);
+            }
+        }
+
+        // Open service in new tab
+        function openInNewTab(url) {
+            window.open(url, '_blank');
+        }
+
+        // Toggle fullscreen mode
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Refresh all iframes
+        function refreshAll() {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                iframe.src = iframe.src;
+            });
+
+            // Reset loading states
+            const loadings = document.querySelectorAll('.loading');
+            loadings.forEach(loading => {
+                loading.style.display = 'flex';
+            });
+
+            // Reset statuses
+            const statuses = document.querySelectorAll('.status-indicator');
+            statuses.forEach(status => {
+                status.textContent = '● Online';
+                status.className = 'status-indicator status-online';
+            });
+        }
+
+        // Load health check information
+        function loadHealthCheck() {
+            const healthContent = document.getElementById('health-iframe').contentDocument;
+            if (healthContent) {
+                healthContent.body.innerHTML = `
+                    <div style="padding: 20px; font-family: Arial, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); height: 100%; overflow-y: auto;">
+                        <h2 style="color: #333; margin-bottom: 20px;">🩺 System Health Check</h2>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="color: #4CAF50; margin: 0 0 10px 0;">📊 Dashboard</h3>
+                                <p style="margin: 0; color: #666;">Port: 8501</p>
+                                <p style="margin: 5px 0 0 0; color: #4CAF50;">● Online</p>
+                            </div>
+
+                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="color: #2196F3; margin: 0 0 10px 0;">⚡ API</h3>
+                                <p style="margin: 0; color: #666;">Port: 8000</p>
+                                <p style="margin: 5px 0 0 0; color: #4CAF50;">● Online</p>
+                            </div>
+
+                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="color: #FF9800; margin: 0 0 10px 0;">🌐 Frontend</h3>
+                                <p style="margin: 0; color: #666;">Port: 8000</p>
+                                <p style="margin: 5px 0 0 0; color: #4CAF50;">● Online</p>
+                            </div>
+                        </div>
+
+                        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="color: #333; margin: 0 0 15px 0;">🔧 Quick Actions</h3>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button onclick="parent.refreshAll()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Refresh All</button>
+                                <button onclick="parent.openInNewTab('http://localhost:8501')" style="background: #764ba2; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Open Dashboard</button>
+                                <button onclick="parent.openInNewTab('http://localhost:8000/docs')" style="background: #f093fb; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">API Docs</button>
+                            </div>
+                        </div>
+
+                        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 15px;">
+                            <h3 style="color: #333; margin: 0 0 15px 0;">📋 Features Overview</h3>
+                            <ul style="color: #666; line-height: 1.6;">
+                                <li><strong>Dashboard:</strong> Interactive data visualization with filters, charts, and ML analysis</li>
+                                <li><strong>API:</strong> RESTful endpoints for games data, analytics, and clustering</li>
+                                <li><strong>Frontend:</strong> JavaScript interface with real-time filtering and Chart.js visualizations</li>
+                                <li><strong>ML Features:</strong> K-means clustering, sales forecasting, correlation analysis</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+
+            hideLoading('health-loading');
+        }
+
+        // Check service availability periodically
+        setInterval(async () => {
+            for (const [service, config] of Object.entries(services)) {
+                try {
+                    const response = await fetch(config.url, { mode: 'no-cors' });
+                    config.status = 'online';
+                } catch (error) {
+                    config.status = 'offline';
+                }
+
+                const statusElement = document.getElementById(`${service}-status`);
+                if (statusElement) {
+                    statusElement.textContent = config.status === 'online' ? '● Online' : '● Offline';
+                    statusElement.className = `status-indicator status-${config.status}`;
+                }
+            }
+        }, 30000); // Check every 30 seconds
+
+        // Initialize health check on load
+        window.onload = () => {
+            setTimeout(loadHealthCheck, 1000);
+        };
+    </script>
+</body>
+</html>

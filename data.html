@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Game Sales Data</title>
+    <link rel="stylesheet" href="data.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Video Game Sales Dataset</h1>
+        <p>This is an interactive web application to explore video game sales data.</p>
+        
+        <div class="filters">
+            <input type="text" id="search" class="searchbar" placeholder="Search games" onkeyup="applyFilters()">
+            
+            <select id="genreFilter" onchange="applyFilters()">
+                <option value="">All Genres</option>
+            </select>
+            
+            <select id="platformFilter" onchange="applyFilters()">
+                <option value="">All Platforms</option>
+            </select>
+            
+            <input type="number" id="yearFilter" placeholder="Min Year" onchange="applyFilters()" min="1980" max="2025">
+        </div>
+        
+        <table id="gamesTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Rank</th>
+                    <th onclick="sortTable(1)">Name</th>
+                    <th onclick="sortTable(2)">Platform</th>
+                    <th onclick="sortTable(3)">Year</th>
+                    <th onclick="sortTable(4)">Genre</th>
+                    <th onclick="sortTable(5)">Publisher</th>
+                    <th onclick="sortTable(6)">NA Sales</th>
+                    <th onclick="sortTable(7)">EU Sales</th>
+                    <th onclick="sortTable(8)">JP Sales</th>
+                    <th onclick="sortTable(9)">Other Sales</th>
+                    <th onclick="sortTable(10)">Global Sales</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data rows will be populated by JS -->
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <button onclick="prevPage()">Previous</button>
+            <span id="pageInfo"></span>
+            <button onclick="nextPage()">Next</button>
+        </div>
+    </div>
+    <script>
+        // Sample data (in a real app, this would be loaded from CSV)
+        const data = [
+            [1, "Wii Sports", "Wii", 2006, "Sports", "Nintendo", 41.49, 29.02, 3.77, 8.46, 82.74],
+            [2, "Super Mario Bros.", "NES", 1985, "Platform", "Nintendo", 29.08, 3.58, 6.81, 0.77, 40.24],
+            [3, "Mario Kart Wii", "Wii", 2008, "Racing", "Nintendo", 15.85, 12.88, 3.79, 3.31, 35.82],
+            [4, "Wii Sports Resort", "Wii", 2009, "Sports", "Nintendo", 15.75, 11.01, 3.28, 2.96, 33.00],
+            [5, "Pokemon Red/Pokemon Blue", "GB", 1996, "Role-Playing", "Nintendo", 11.27, 8.89, 10.22, 1.00, 31.37],
+            [6, "Tetris", "GB", 1989, "Puzzle", "Nintendo", 23.20, 2.26, 4.22, 0.58, 30.26],
+            [7, "New Super Mario Bros.", "DS", 2006, "Platform", "Nintendo", 11.38, 9.23, 6.50, 2.90, 30.01],
+            [8, "Wii Play", "Wii", 2006, "Misc", "Nintendo", 14.03, 9.20, 2.93, 2.85, 29.02],
+            [9, "New Super Mario Bros. Wii", "Wii", 2009, "Platform", "Nintendo", 14.59, 7.06, 4.70, 2.26, 28.62],
+            [10, "Duck Hunt", "NES", 1984, "Shooter", "Nintendo", 26.93, 0.63, 0.28, 0.47, 28.31]
+        ];
+
+        let currentPage = 1;
+        const rowsPerPage = 5;
+        let filteredData = [...data];
+        let sortColumn = -1;
+        let sortAsc = true;
+
+        // Populate filters
+        function populateFilters() {
+            const genres = [...new Set(data.map(row => row[4]))];
+            const genreFilter = document.getElementById('genreFilter');
+            genres.forEach(genre => {
+                const option = document.createElement('option');
+                option.value = genre;
+                option.textContent = genre;
+                genreFilter.appendChild(option);
+            });
+
+            const platforms = [...new Set(data.map(row => row[2]))];
+            const platformFilter = document.getElementById('platformFilter');
+            platforms.forEach(platform => {
+                const option = document.createElement('option');
+                option.value = platform;
+                option.textContent = platform;
+                platformFilter.appendChild(option);
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const genreFilter = document.getElementById('genreFilter').value;
+            const platformFilter = document.getElementById('platformFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+
+            filteredData = data.filter(row => {
+                const matchesSearch = row[1].toLowerCase().includes(searchTerm);
+                const matchesGenre = !genreFilter || row[4] === genreFilter;
+                const matchesPlatform = !platformFilter || row[2] === platformFilter;
+                const matchesYear = !yearFilter || row[3] >= parseInt(yearFilter);
+                return matchesSearch && matchesGenre && matchesPlatform && matchesYear;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Sort table
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortAsc = !sortAsc;
+            } else {
+                sortColumn = column;
+                sortAsc = true;
+            }
+
+            filteredData.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+                if (aVal < bVal) return sortAsc ? -1 : 1;
+                if (aVal > bVal) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        }
+
+        // Render table
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            pageData.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+
+            updatePagination();
+        }
+
+        // Update pagination
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.querySelector('.pagination button:first-child').disabled = currentPage === 1;
+            document.querySelector('.pagination button:last-child').disabled = currentPage === totalPages;
+        }
+
+        // Pagination functions
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
+        // Initialize
+        populateFilters();
+        renderTable();
+    </script>
+</body>
+</html>
